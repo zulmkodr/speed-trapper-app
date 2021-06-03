@@ -1,0 +1,83 @@
+﻿<html>
+<head>
+    @Scripts.Render("~/bundles/jquery")
+    <title>Speed Trapper</title>
+    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <style type="text/css">
+        .validSpeed {
+            float:left;display: inline;margin-left:10px;
+        }
+        .inValidSpeed {
+            float:left;display: inline;margin-left:10px;
+        }
+    </style>
+    <script>
+        $(function () {
+            var chat = $.connection.SpeedTrapperHub;
+            chat.client.addNewMessageToPage = function (name, message, speed) {
+                if (message <= speed) {
+                    $('#cardetails').append('<div  class="validSpeed""><span style="font-size:x-large;>' + name + '</span><br /><span style="font-size:x-large; color:forestgreen">' + message + '</span></div>');
+                }
+
+                else {
+                    $('#cardetails').append('<div  class="inValidSpeed"><span style="font-size:x-large; ">' + name + '</span><br /><span style="font-size:x-large; color:red">' + message + '</span></div>');
+                }
+
+            };
+            $.connection.hub.start({ waitForPageLoad: true }, function () {
+
+            });
+            $('#btnOverSpeed').click(function () {
+                if ($('#txtOverSpeed').val() <= 200) {
+                    chat.server.SetSpeed($('#txtOverSpeed').val());
+                    $('#cardetails').empty();
+                    $("#cardetails").html("");
+
+                }
+                else {
+                    alert("Speed limit over 200 is not allowed.");
+                    $('#txtOverSpeed').val("");
+                }
+
+
+            });
+        });
+        function htmlEncode(value) {
+            var encodedValue = $('<div />').text(value).html();
+            return encodedValue;
+        }
+
+
+        function ValidateNumber(e) {
+            var evt = (e) ? e : window.event;
+            var charCode = (evt.keyCode) ? evt.keyCode : evt.which;
+            if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+                return false;
+            }
+            return true;
+        };
+</script>
+    <style type="text/css">
+        .trapper {
+            display: inline-block;
+            border-bottom: solid;
+            width: 100%;
+            padding-bottom: 20px;
+            border-bottom-color: aqua;
+        }
+    </style>
+</head>
+<body>
+    <div class="trapper">
+        <span style="font-size: x-large; color: green">Speed Trap</span>
+        &nbsp;&nbsp;&nbsp; 
+    Overspeed: @Html.TextBox("txtOverSpeed", "", new { onkeydown = "return ValidateNumber(event);", style = "width:50px;" })
+        <input type="button" id="btnOverSpeed" value="Apply" />
+    </div>
+    <br />
+    <div id="cardetails" style="display: inline;"></div>
+
+</body>
+</html>
+

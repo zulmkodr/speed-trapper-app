@@ -1,0 +1,53 @@
+﻿@{
+    ViewBag.Title = "Car App";
+}
+<html>
+<head>
+    @Scripts.Render("~/bundles/jquery")
+    <script src="~/Scripts/jquery.signalR-2.2.0.js"></script>
+    <script src="http://localhost:65359/SignalR/hubs"></script>
+    <script>
+        $(function () {
+            var displayedcar = "";
+            var carspeed = 0;
+            var selectedCarIndex = 0;
+            $.support.cors = true;
+            $.connection.hub.url = 'http://localhost:65359/signalr';
+            var chat = $.connection.SpeedTrapperHub;
+            chat.client.broadcastMessage = function broadcastMessage(name, message, speed) {
+                $('#cardetails').html("");
+                if (message == 0) {
+                    $('#cardetails').append('<div  style=" float:left;margin-left:10px;"><span style="font-size:x-large; ">My name is <b>' + name + '</b></span><br />    <span style="font-size:40px; color:green">' + speed + 'km</span><br /><span style="font-size:x-large; ">(Current Speed)</span></div>');
+                }
+                else {
+                    $('#cardetails').append('<div  style=" float:left;margin-left:10px;"><span style="font-size:x-large; ">My name is <b>' + name + '</b></span><br />    <span style="font-size:90px; color:red">You' + "'" + 're busted</span><br /><span>(over speed ' + speed + 'km)</span></div>');
+                }
+            };
+
+            function getCarDetails() {
+                $.get('../../resources/car-names.txt', function (data) {
+                    $.support.cors = true;
+                    var availableCars = data.split("\n");
+                    selectedCarIndex = Math.floor(availableCars.length * Math.random());
+                    displayedcar = availableCars[selectedCarIndex - 1];
+                    carspeed = Math.floor(Math.random() * 200);
+                    chat.server.send(displayedcar, carspeed);
+                });
+            }
+
+            $.connection.hub.start({ jsonp: true }).done(function () {
+                getCarDetails();
+            }).fail(function () {
+                alert("fail to get car details");
+            });
+        });
+    </script>
+    <meta name="viewport" content="width=device-width" />
+    <title>Car App</title>
+</head>
+<body>
+    <div>
+        <div id="cardetails"></div>
+    </div>
+</body>
+</html>
